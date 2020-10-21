@@ -18,7 +18,7 @@ namespace MyExcelLab
         {
             InitializeComponent();
             CellManager.Instance.SetDataGridView(dataGridView1);
-            SetupDataGridView(5, 5);
+            SetupDataGridView(10, 10);
             formulaView = false;
             /*if (args.Length == 1)
             {
@@ -121,7 +121,7 @@ namespace MyExcelLab
                     {
                         if (myCell.Expression == "")
                         {
-                            cell.Value = myCell.Value;
+                            cell.Value = myCell.Expression;
                         }
                         else
                         {
@@ -145,7 +145,7 @@ namespace MyExcelLab
                 DataRow newRow = table.NewRow();
                 foreach (DataColumn column in table.Columns)
                 {
-                    newRow[column.ColumnName] = CellManager.Instance.GetCellValue(column.ColumnName[0], row.Index);//////
+                    newRow[column.ColumnName] = CellManager.Instance.GetCell(row.Cells[int.Parse(column.ColumnName)]).Expression;//////
                 }
                 table.Rows.Add(newRow);
             }
@@ -175,8 +175,7 @@ namespace MyExcelLab
             {
                 foreach (DataGridViewCell cell in row.Cells)
                 {
-                    Console.WriteLine(dataGridView1.Rows.Count + " " + dataGridView1.Columns.Count);
-                    MyCell myCell = CellManager.Instance.GetCell(cell.RowIndex,cell.ColumnIndex);////
+                    MyCell myCell = CellManager.Instance.GetCell(cell);////
                     if (!formulaView)
                     {
                         cell.Value = myCell.Expression;
@@ -184,6 +183,10 @@ namespace MyExcelLab
                     else
                     {
                         if (myCell.Expression == "")
+                        {
+                            cell.Value = myCell.Expression;
+                        }
+                        else
                         {
                             cell.Value = myCell.Value;
                         }

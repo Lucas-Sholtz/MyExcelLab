@@ -8,8 +8,8 @@ namespace MyExcelLab
 {
     enum TokenType
     {
-        BOOLEAN, //true, false
-        ID,
+        INTEGER,
+        ID, //RXCY
         MOD, // %
         DIV, // /
         UPLUS, //unar plus

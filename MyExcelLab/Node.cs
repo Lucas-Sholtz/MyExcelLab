@@ -9,19 +9,40 @@ namespace MyExcelLab
 {
     abstract class Node
     {
-        public abstract bool Evaluate();
+        public abstract int Evaluate();
+        public static bool MakeBool(int n)
+        {
+            if (n > 0)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        } // converts int to bool, for example: -1 is false, 0 false, 24 true
+        public static int MakeInt(bool b)
+        {
+            if (b)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        } // converts bool to int: false - 0, true - 1
     }
-    class BooleanNode : Node
+    class IntegerNode : Node
     {
-        private bool _value; //node value
+        private int _value; //node value
         private Token _token; //lexeme
-        public BooleanNode(Token token)
+        public IntegerNode(Token token)
         {
             _token = token;
-            string val = token.Value;
-            _value = bool.Parse(token.Value);
+            _value = int.Parse(token.Value);
         }
-        public override bool Evaluate()
+        public override int Evaluate()
         {
             return _value;
         }
@@ -33,53 +54,60 @@ namespace MyExcelLab
         private Token _operation; // operation between parts
         public BinaryOperationNode(Node left, Node right, Token operation)
         {
-            _left = left;
+            _left = left; 
             _right = right;
             _operation = operation;
         }
-        public override bool Evaluate()
+        public override int Evaluate()
         {
-            return DoBinaryOperation(_operation.Type);
-        }
-        private bool DoBinaryOperation(TokenType type)
-        {
-            switch (type)
+            switch (_operation.Type)
             {
-                case TokenType.OR:
-                    return _left.Evaluate() || _right.Evaluate();
-                case TokenType.AND:
-                    return _left.Evaluate() && _right.Evaluate();
+                case TokenType.MOD:
+                    {
+                        int right = _right.Evaluate();
+                        if (right == 0)
+                        {
+                            throw new DivideByZeroException();
+                        }
+                        return _left.Evaluate() % right;
+                    }
+                case TokenType.DIV:
+                    {
+                        int right = _right.Evaluate();
+                        if (right == 0)
+                        {
+                            throw new DivideByZeroException();
+                        }
+                        return _left.Evaluate() / right;
+                    }
                 case TokenType.EQUAL:
-                    return _left.Evaluate() == _right.Evaluate();
+                    {
+                        return MakeInt(_left.Evaluate() == _right.Evaluate());
+                    }
+                case TokenType.LESS:
+                    {
+                        return MakeInt(_left.Evaluate() < _right.Evaluate());
+                    }
+                case TokenType.GREATER:
+                    {
+                        return MakeInt(_left.Evaluate() > _right.Evaluate());
+                    }
+                case TokenType.OR:
+                    {
+                        return MakeInt(MakeBool(_left.Evaluate()) || MakeBool(_right.Evaluate()));
+                    }
+                case TokenType.AND:
+                    {
+                        return MakeInt(MakeBool(_left.Evaluate()) && MakeBool(_right.Evaluate()));
+                    }
                 default:
-                    return NotStandartOperation(type);
+                    {
+                        return -2020;
+                    }
             }
-        }
-        private bool NotStandartOperation(TokenType type)
-        {
-            Dictionary<TokenType, bool[]> dictionary = new Dictionary<TokenType, bool[]>()
-            {
-                {TokenType.GREATER, new bool [] {false, false, true, false } },
-                {TokenType.LESS,    new bool [] {false, true, false, false } },
-                {TokenType.MOD,     new bool [] {false, false, false, false } },
-                {TokenType.DIV,     new bool [] {false, false, false, false } }
-            };
-
-            int index = 0;
-
-            if (_left.Evaluate())
-            {
-                index += 2;
-            }
-            if (_right.Evaluate())
-            {
-                index += 1;
-            }
-
-            return dictionary[type][index];
         }
     }
-    class UnaryOperationNode :Node
+    class UnaryOperationNode : Node
     {
         private Node _node;
         private Token _operation;
@@ -88,67 +116,65 @@ namespace MyExcelLab
             _node = node;
             _operation = operation;
         }
-        public override bool Evaluate()
+        public override int Evaluate()
         {
-            return DoUnaryOperation(_operation.Type);
-        }
-        private bool DoUnaryOperation(TokenType type)
-        {
-            switch (type)
+            switch (_operation.Type)
             {
+                case TokenType.UMINUS:
+                    {
+                        return -(_node.Evaluate());
+                    }
+                case TokenType.UPLUS:
+                    {
+                        return _node.Evaluate();
+                    }
                 case TokenType.NOT:
-                    return !_node.Evaluate();
+                    {
+                        return MakeInt(!MakeBool(_node.Evaluate()));
+                    }
                 default:
-                    return NotStandartOperation(type);
+                    {
+                        return 2020;
+                    }
             }
-        }
-        private bool NotStandartOperation(TokenType type)
-        {
-            Dictionary<TokenType, bool[]> dictionary = new Dictionary<TokenType, bool[]>()
-            {
-                {TokenType.UPLUS, new bool [] {true, true} },
-                {TokenType.UMINUS,    new bool [] {false, false} }
-            };
-
-            int index = 0;
-
-            if (_node.Evaluate())
-            {
-                index += 1;
-            }
-
-            return dictionary[type][index];
         }
     }
     class CellNode : Node
     {
-        private string _name;
-        private int _row;
-        private int _column;
-        private Token _token;
+        private string _name; // cell name
+        private int _row; // row index
+        private int _column; // column index
+        private Token _token; // token, ID
         public CellNode(Token token)
         {
             _token = token;
             _name = token.Value;
             var regex = new Regex(@"^R(?<row>\d+)C(?<col>\d+)$");
             var mathes = regex.Matches(_name);
+            // find row and column index from cells name
             _row = int.Parse(mathes[0].Groups["row"].Value) - 1;
             _column = int.Parse(mathes[0].Groups["col"].Value) - 1;
         }
-        public override bool Evaluate()
+        public override int Evaluate()
         {
+            //check recursion
             CellManager.Instance.RecursionCheck(_name);
+
             bool isCellExists = CellManager.Instance.DoesCellExist(_row, _column);
-            bool value;
+
+            int value;
+
             if (isCellExists)
             {
                 value = CellManager.Instance.GetCellValue(_row, _column);
             }
             else
             {
-                value = false;
+                value = 0;
             }
+
             CellManager.Instance.DeleteVariable(_name);
+
             return value;
         }
     }

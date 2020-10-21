@@ -7,7 +7,7 @@ using System.Windows.Forms;
 
 namespace MyExcelLab
 {
-    class RecursionException : Exception { }
+    class RecursionException : Exception { } // just another wrapper for exception
     class CellManager
     {
         private static CellManager _instance;
@@ -21,24 +21,31 @@ namespace MyExcelLab
                 }
                 return _instance;
             }
-        }
+        } // singleton cellmanager
 
-        public List<string> varStack = new List<string>(); //list of cell names
-        private DataGridView _dgv;
-        public void SetDataGridView(DataGridView dgv)
+        public List<string> varStack = new List<string>(); // list of cell names
+
+        private DataGridView _dgv; // datagrid
+        public void SetDataGridView(DataGridView dgv) // sets datagrid
         {
             _dgv = dgv;
         }
-        public MyCell GetCell(int row, int column)
+        public MyCell GetCell(int row, int column) // returns MyCell by its row and column indexes
         {
-            MyCell cell = (MyCell)_dgv[row, column].Tag;////////
+            MyCell cell = (MyCell)_dgv[column, row].Tag;
+
             return cell;
         }
-
+        public MyCell GetCell(DataGridViewCell dgvCell) // returns MyCell сorresponding to the cell in data grid
+        {
+            MyCell cell = (MyCell)dgvCell.Tag;
+            return cell;
+        }
         public bool DoesCellExist(int row, int column)
         {
             try
             {
+                // if cell exist then we could get it
                 GetCell(row, column);
                 return true;
             }
@@ -47,10 +54,12 @@ namespace MyExcelLab
                 return false;
             }
         }
-        public bool GetCellValue(int row, int column)
+        public int GetCellValue(int row, int column) // returns cell value by its indexes
         {
             MyCell cell = GetCell(row, column);
-            if (cell.Expression != "")
+
+            // if its empty then we dont need to calculate it
+            if (cell.Expression != "") 
             {
                 return cell.EvaluateCell();
             }
@@ -59,20 +68,23 @@ namespace MyExcelLab
                 return cell.Value;
             }
         }
-        public void RecursionCheck(string name)
+        public void RecursionCheck(string name) // checks for recursion
         {
+            //if we already have such variable
             if (varStack.Contains(name))
             {
+                // recursion happened, clear all variables
                 ClearVariables();
                 throw new RecursionException();
             }
+            // if all ok
             varStack.Add(name);
         }
-        public void DeleteVariable(string name)
+        public void DeleteVariable(string name) // removes variable from var stack
         {
             varStack.Remove(name);
         }
-        public void ClearVariables()
+        public void ClearVariables() // clears var stack
         {
             varStack.Clear();
         }

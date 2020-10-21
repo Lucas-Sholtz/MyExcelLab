@@ -7,13 +7,13 @@ using System.Text.RegularExpressions;
 
 namespace MyExcelLab
 {
-    class TokenException : Exception { } //just a simple wrapper with apropriate name
+    class TokenException : Exception { } // just a simple wrapper with apropriate name
     class Lexer
-    {
-        private string _text; //text which we write in cell
-        private int _pos; //symbol position
-        private char _currChar; //current char
-        const char NONE = '\0'; //empty symbol
+    { 
+        private string _text; // text which we write in cell
+        private int _pos; // symbol position
+        private char _currChar; // current char
+        const char NONE = '\0'; // empty symbol
 
         public Lexer(string text)
         {
@@ -21,15 +21,16 @@ namespace MyExcelLab
             _pos = 0;
             _currChar = _text[0];
         }
-        public void ThrowTokenException() //throws an exception
+        public void ThrowTokenException() // throws an exception
         {
             throw new TokenException();
         }
-        public void StepNextPos() //moving the current char one step forward
+        public void StepNextPos() // moving the current char one step forward
         {
-            ++_pos;
-            if (_pos > _text.Length - 1) //end of line
+            // if end of line
+            if (++_pos > _text.Length - 1)
             {
+                // no more symbols
                 _currChar = NONE;
             }
             else 
@@ -37,7 +38,7 @@ namespace MyExcelLab
                 _currChar = _text[_pos];
             }
         }
-        public void SkipWhitespace()
+        public void SkipWhitespace() //skips all whitespaces
         {
             while (_currChar != NONE && Char.IsWhiteSpace(_currChar))
             {
@@ -48,51 +49,52 @@ namespace MyExcelLab
         {
             string result = "";
 
+            // only letters or digits could appear in cells name
             while (_currChar != NONE && Char.IsLetterOrDigit(_currChar))
             {
                 result += _currChar;
                 StepNextPos();
             }
 
+            // regular an expression that shows how the cell names should look
             var regex = new Regex(@"^R(?<row>\d+)C(?<col>\d+)$");
+
             var matches = regex.Matches(result);
 
             if (matches.Count != 1)
             {
+                // if cell has invalid name format
                 ThrowTokenException();
             }
-
+            // first and the only one name needed
             string name = matches[0].Groups[0].Value;
+
             return name;
         }
-        public string GetBool() //bool value processing
+        public string GetInteger() //int value processing
         {
             string result = "";
 
+            // only digits
             while (_currChar != NONE && Char.IsDigit(_currChar))
             {
                 result += _currChar;
                 StepNextPos();
             }
 
-            if (Char.IsLetter(_currChar)) //throw an exception if char
+            //throw an exception if char
+            if (Char.IsLetter(_currChar))
             {
                 ThrowTokenException();
             }
 
-            if (result == "1")
-            {
-                return "True";
-            }
-            else
-            {
-                return "False";
-            }
+            return result;
         }
         public Token GetNextToken() //reads next lexeme
         {
             while (_currChar != NONE)
             {
+                //skips all whitespaces
                 if (Char.IsWhiteSpace(_currChar))
                 {
                     SkipWhitespace();
@@ -103,8 +105,10 @@ namespace MyExcelLab
                 {
                     case TokenType.ID:
                         return new Token(TokenType.ID, GetCell());
-                    case TokenType.BOOLEAN:
-                        return new Token(TokenType.BOOLEAN, GetBool());
+
+                    case TokenType.INTEGER:
+                        return new Token(TokenType.INTEGER, GetInteger());
+
                     case TokenType.MOD:
                         {
                             StepNextPos();
@@ -182,7 +186,7 @@ namespace MyExcelLab
             }
             else if (Char.IsDigit(symbol))
             {
-                return TokenType.BOOLEAN;
+                return TokenType.INTEGER;
             }
             else if (symbol == '%')
             {

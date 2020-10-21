@@ -9,16 +9,16 @@ namespace MyExcelLab
 {
     class MyCell
     {
-        public DataGridViewCell Parent { get; set; }
-        public bool Value { get; set; }
-        public string Expression { get; set; }
+        public DataGridViewCell Parent { get; set; } // dgv parent of myCell
+        public int Value { get; set; } // its value
+        public string Expression { get; set; } // string expression
         public MyCell(DataGridViewCell parent, string expression)
         {
             this.Parent = parent;
-            Value = false;/////
+            Value = 0;
             this.Expression = expression;
         }
-        public bool EvaluateCell()
+        public int EvaluateCell() // returns cell value
         {
             if (Expression != "")
             {

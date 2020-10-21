@@ -9,19 +9,19 @@ namespace MyExcelLab
     class SyntaxException : Exception { }
     class Parser
     {
-        private Lexer _lexer;
-        private Token _currToken;
+        private Lexer _lexer; // used lexer
+        private Token _currToken; // current token
 
         public Parser(Lexer lexer)
         {
             _lexer = lexer;
             _currToken = _lexer.GetNextToken();
         }
-        private void ThrowException()
+        private void ThrowSyntaxException() // throws syntax exception
         {
             throw new SyntaxException();
         }
-        private void ReadNextLexeme(TokenType type)
+        private void ReadNextLexeme(TokenType type) // reads next lexeme
         {
             if (_currToken.Type == type)
             {
@@ -29,67 +29,125 @@ namespace MyExcelLab
             }
             else
             {
-                ThrowException();
+                ThrowSyntaxException();
             }
         }
-        public Node Expression()
+        public Node PrioritySix() //lowest priority : = < >
         {
-            Node node = B();
+            // go down one level
+            Node node = PriorityFive();
 
-            return node;
-        }
-        public Node B()
-        {
-            Node node = C();
-            TokenType type = _currToken.Type;
-            HashSet<TokenType> op = new HashSet<TokenType>() 
-            {  
-                TokenType.DIV, TokenType.MOD,
-                TokenType.EQUAL, TokenType.GREATER, 
-                TokenType.LESS, TokenType.OR, 
-                TokenType.AND 
+            HashSet<TokenType> operations = new HashSet<TokenType>() // allowed operations
+            {
+                TokenType.EQUAL,
+                TokenType.LESS,
+                TokenType.GREATER
             };
-            while (op.Contains(type))
+            // check if current token type is appropriate
+            while (operations.Contains(_currToken.Type))
             {
                 Token token = _currToken;
-                ReadNextLexeme(token.Type);///////
-                node = new BinaryOperationNode(node, C(), token);
+                ReadNextLexeme(token.Type);
+                // PriorityFive() finds right node
+                node = new BinaryOperationNode(node, PriorityFive(), token);
             }
-            return node;
-        }
-        public Node C()
-        {
-            Token token = _currToken;
-            Node node = D();
-            return node;
-        }
-        public Node D()
-        {
-            Token token = _currToken;
 
-            if(token.Type == TokenType.BOOLEAN)
+            return node;
+        }
+        private Node PriorityFive()
+        {
+            // go down one level
+            Node node = PriorityFour();
+
+            HashSet<TokenType> operations = new HashSet<TokenType>() // allowed operations
+            { 
+                TokenType.OR
+            };
+            while (operations.Contains(_currToken.Type))
             {
-                ReadNextLexeme(TokenType.BOOLEAN);
-                return new BooleanNode(token);
+                Token token = _currToken;
+                ReadNextLexeme(token.Type);
+                // PriorityFour() finds right node
+                node = new BinaryOperationNode(node, PriorityFour(), token);
             }
+            return node;
+        }
+        private Node PriorityFour()
+        {
+            Node node = PriorityThree();
 
+            HashSet<TokenType> operations = new HashSet<TokenType>()
+            {
+                TokenType.DIV,
+                TokenType.MOD,
+                TokenType.AND
+            };
+            while (operations.Contains(_currToken.Type))
+            {
+                Token token = _currToken;
+                ReadNextLexeme(token.Type);
+                node = new BinaryOperationNode(node, PriorityThree(), token);
+            }
+            return node;
+        }
+        private Node PriorityThree()
+        {
+            Node node = PriorityTwo();
+
+            HashSet<TokenType> operations = new HashSet<TokenType>()
+            {
+                TokenType.UMINUS,
+                TokenType.UPLUS
+            };
+            while (operations.Contains(_currToken.Type))
+            {
+                Token token = _currToken;
+                ReadNextLexeme(token.Type);
+                node = new UnaryOperationNode(PriorityTwo(), token);
+            }
+            return node;
+        }   
+        private Node PriorityTwo()
+        {
+            Node node = PriorityOne();
+
+            HashSet<TokenType> operations = new HashSet<TokenType>()
+            {
+                TokenType.NOT
+            };
+            while (operations.Contains(_currToken.Type))
+            {
+                Token token = _currToken;
+                ReadNextLexeme(token.Type);
+                node = new UnaryOperationNode(PriorityOne(), token);
+            }
+            return node;
+        }
+        private Node PriorityOne()
+        {
+            Token token = _currToken;
+            if (token.Type == TokenType.INTEGER)
+            {
+                ReadNextLexeme(token.Type);
+                return new IntegerNode(token);
+            }
             if (token.Type == TokenType.ID)
             {
                 return Variable();
             }
-
-            if(token.Type == TokenType.LPAREN)/////
+            if (token.Type == TokenType.LPAREN)
             {
-                ReadNextLexeme(TokenType.LPAREN);
-                Node node = Expression();
+                ReadNextLexeme(token.Type);
+                // we reset the зкшщкшен level to recognize the expression in brackets
+                Node node = PrioritySix();
                 ReadNextLexeme(TokenType.RPAREN);
                 return node;
             }
-
-            ThrowException();
+            //if expression begins with unknown symbol
+            ThrowSyntaxException();
             return null;
         }
-        public Node Variable()
+        private Node Variable() // returns CellNode
         {
             Node node = new CellNode(_currToken);
             ReadNextLexeme(TokenType.ID);

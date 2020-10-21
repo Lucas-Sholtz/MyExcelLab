@@ -8,7 +8,7 @@ namespace MyExcelLab
 {
     static class Interpreter
     {
-        public static Node BuildTree(string text)
+        public static Node BuildTree(string text) // builds tree from expression string
         {
             if (text == "")
             {
@@ -16,13 +16,13 @@ namespace MyExcelLab
             }
             Lexer lexer = new Lexer(text);
             Parser parser = new Parser(lexer);
-            return parser.Expression();
+            return parser.PrioritySix();
         }
-        public static bool DoInterpretation(string text)
+        public static int DoInterpretation(string text) // interprets expression
         {
             return DoInterpretation(BuildTree(text));
         }
-        public static bool DoInterpretation(Node tree)
+        public static int DoInterpretation(Node tree) // calculates whole expression
         {
             return tree.Evaluate();
         }
