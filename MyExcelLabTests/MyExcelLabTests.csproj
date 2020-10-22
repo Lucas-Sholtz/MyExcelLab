@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="InterpreterTests.cs" />
     <Compile Include="LexerTests.cs" />
+    <Compile Include="NodeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
