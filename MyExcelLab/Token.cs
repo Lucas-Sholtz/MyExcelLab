@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MyExcelLab
 {
-    enum TokenType
+    public enum TokenType
     {
         INTEGER,
         ID, //RXCY
@@ -25,7 +25,7 @@ namespace MyExcelLab
         END,
         INVALID 
     }
-    class Token
+    public class Token
     {
         private TokenType _type; //type of lexem
         private string _value; //expression in the cell

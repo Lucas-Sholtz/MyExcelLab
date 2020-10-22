@@ -14,16 +14,12 @@ namespace MyExcelLab
     {
         bool formulaView;
         string currPath = "";
-        public Form1()//string[] args
+        public Form1()
         {
             InitializeComponent();
             CellManager.Instance.SetDataGridView(dataGridView1);
             SetupDataGridView(10, 10);
             formulaView = false;
-            /*if (args.Length == 1)
-            {
-                LoadDGV(args[0]);
-            }*/
         }
         private void SetupDataGridView(int rows, int columns)
         {
@@ -284,7 +280,7 @@ namespace MyExcelLab
         }
         private void saveFileDialog1_FileOk(object sender, CancelEventArgs e)
         {
-            //SaveDGV(currPath);
+            SaveDGV(currPath);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -318,6 +314,15 @@ namespace MyExcelLab
         private void CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             dataGridView1.BeginEdit(true);
+        }
+
+        private void helpClick(object sender, EventArgs e)
+        {
+            MessageBox.Show("Опис программи:\n " +
+                "Даний табличний процессор дає змогу обчислювати значення логічно-арифметичних виразів, які складаються з операцій:\n " +
+                "(), !, унарні + та -; %, /, |; or; =, >, <. Операціі вказані у порядку зменшення пріорітетності.\n " +
+                "При застосуванні логічних операцій до цілих чисел, вони конвертуються в bool за принципом: >0 : true, інакше false.\n " +
+                "Також є можливість вказувати назви клітинок, як змінні у виразах інших клітинок.");
         }
     }
 }

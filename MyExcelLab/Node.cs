@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace MyExcelLab
 {
-    abstract class Node
+    public abstract class Node
     {
         public abstract int Evaluate();
         public static bool MakeBool(int n)

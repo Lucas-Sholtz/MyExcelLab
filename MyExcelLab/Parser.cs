@@ -143,8 +143,6 @@ namespace MyExcelLab
                 ReadNextLexeme(TokenType.RPAREN);
                 return node;
             }
-            //if expression begins with unknown symbol
-            ThrowSyntaxException();
             return null;
         }
         private Node Variable() // returns CellNode

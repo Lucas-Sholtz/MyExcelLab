@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 namespace MyExcelLab
 {
     class TokenException : Exception { } // just a simple wrapper with apropriate name
-    class Lexer
+    public class Lexer
     { 
         private string _text; // text which we write in cell
         private int _pos; // symbol position
@@ -178,7 +178,7 @@ namespace MyExcelLab
             }
             return new Token(TokenType.END, "END");
         }
-        private TokenType GetTokenType(char symbol)
+        public static TokenType GetTokenType(char symbol)
         {
             if (Char.IsLetter(symbol))
             {

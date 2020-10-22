@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MyExcelLab
 {
-    static class Interpreter
+    public static class Interpreter
     {
         public static Node BuildTree(string text) // builds tree from expression string
         {
@@ -22,7 +22,7 @@ namespace MyExcelLab
         {
             return DoInterpretation(BuildTree(text));
         }
-        public static int DoInterpretation(Node tree) // calculates whole expression
+        public static int DoInterpretation(Node tree) // calculates whole expre
         {
             return tree.Evaluate();
         }

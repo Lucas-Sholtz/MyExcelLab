@@ -75,14 +75,14 @@
             // зберегтиToolStripMenuItem
             // 
             this.зберегтиToolStripMenuItem.Name = "зберегтиToolStripMenuItem";
-            this.зберегтиToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.зберегтиToolStripMenuItem.Size = new System.Drawing.Size(155, 26);
             this.зберегтиToolStripMenuItem.Text = "Зберегти";
             this.зберегтиToolStripMenuItem.Click += new System.EventHandler(this.saveMenuStrip);
             // 
             // відкритиToolStripMenuItem
             // 
             this.відкритиToolStripMenuItem.Name = "відкритиToolStripMenuItem";
-            this.відкритиToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.відкритиToolStripMenuItem.Size = new System.Drawing.Size(155, 26);
             this.відкритиToolStripMenuItem.Text = "Відкрити";
             this.відкритиToolStripMenuItem.Click += new System.EventHandler(this.openMenuStrip);
             // 
@@ -91,6 +91,7 @@
             this.довідкаToolStripMenuItem.Name = "довідкаToolStripMenuItem";
             this.довідкаToolStripMenuItem.Size = new System.Drawing.Size(77, 24);
             this.довідкаToolStripMenuItem.Text = "Довідка";
+            this.довідкаToolStripMenuItem.Click += new System.EventHandler(this.helpClick);
             // 
             // toolStrip1
             // 
