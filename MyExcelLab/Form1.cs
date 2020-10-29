@@ -44,45 +44,130 @@ namespace MyExcelLab
         }
         private void InsertRow()
         {
-            DataGridViewCell cell = dataGridView1.SelectedCells[0];
-            dataGridView1.Rows.Insert(cell.RowIndex);
-            UpdateDGV();
+            DataGridViewCell cell = null;
+            try
+            {
+                cell = dataGridView1.SelectedCells[0];
+            }
+            catch (Exception) { }
+            if (cell != null)
+            {
+                dataGridView1.Rows.Insert(cell.ColumnIndex, new DataGridViewRow());
+                UpdateDGV();
+            }
+            else
+            {
+                MessageBox.Show("Ви не можете вставити рядок у пусту таблицю, бо у ній неможливо вказати місце вставки.\nСпробуйте додати.", "Повідомлення", MessageBoxButtons.OK);
+            }
         }
         private void InsertColumn()
         {
-            DataGridViewCell cell = dataGridView1.SelectedCells[0];
-            dataGridView1.Columns.Insert(cell.ColumnIndex, new DataGridViewColumn());
-            UpdateDGV();
+            DataGridViewCell cell = null;
+            try
+            {
+                cell = dataGridView1.SelectedCells[0];
+            }
+            catch (Exception) { }
+            if (cell != null)
+            {
+                DataGridViewColumn column = new DataGridViewColumn();
+                column.CellTemplate = new DataGridViewTextBoxCell();
+                dataGridView1.Columns.Insert(cell.ColumnIndex, column);
+                UpdateDGV();
+            }
+            else
+            {
+                MessageBox.Show("Ви не можете вставити колонку у пусту таблицю, бо у ній неможливо вказати місце вставки.\nСпробуйте додати.", "Повідомлення", MessageBoxButtons.OK);
+            }
         }
         private void DeleteRow()
         {
-            DialogResult result = MessageBox.Show("Ви дійсно хочете видалити виділений рядок?", "Видалити", MessageBoxButtons.YesNo);
-            if (result == DialogResult.Yes)
+            DialogResult result = DialogResult.No;
+            if (dataGridView1.RowCount == 1)
             {
-                if (dataGridView1.RowCount > 1)
+                result = MessageBox.Show("Ви дійсно хочете видалити останній рядок?", "Видалити", MessageBoxButtons.YesNo);
+            }
+            if (dataGridView1.RowCount == 0||dataGridView1.ColumnCount==0)
+            {
+                MessageBox.Show("Таблиця порожня!","Повідомлення", MessageBoxButtons.OK);
+            }
+            else if ((dataGridView1.RowCount > 1) || (dataGridView1.RowCount == 1 && result == DialogResult.Yes))
+            {
+                DataGridViewCell cell = dataGridView1.SelectedCells[0];////////////////
+                DataGridViewRow row = dataGridView1.Rows[cell.RowIndex];
+                DialogResult res=DialogResult.No;
+                string deletedCells = "";
+                for(int i=0;i<row.Cells.Count;i++)
                 {
-                    DataGridViewCell cell = dataGridView1.SelectedCells[0];
-                    dataGridView1.Rows.RemoveAt(cell.RowIndex);
+                    string name = CellManager.Instance.CheckCellIsUsed(row.Cells[i]);
+                    if (name.Length > 0)
+                    {
+                        deletedCells += name + " ";
+                        CellManager.Instance.deletedCells.Add(name);
+                    }
                 }
-                UpdateDGV();
-                UpdateCellValues();
+                if (deletedCells.Length > 0)
+                {
+                     res = MessageBox.Show
+                        (
+                        "В обраному рядку є клітинки " + deletedCells + "на які посилаються інші клітинки таблиці.\n" +
+                        "Якщо ви видалите цей рядок, то значення цих клітинок буде прийняте за IntMax.\n" +
+                        "Ви дійсно хочете це зробити?", "Попередження", MessageBoxButtons.YesNo
+                        );
+                }
+                if (res == DialogResult.Yes)
+                {
+                    dataGridView1.Rows.RemoveAt(cell.RowIndex);
+                    UpdateDGV();
+                    UpdateCellValues();
+                }
+                CellManager.Instance.deletedCells.Clear();
             }
         }
         private void DeleteColumn()
         {
-            DialogResult result = MessageBox.Show("Ви дійсно хочете видалити виділену колонку?", "Видалити", MessageBoxButtons.YesNo);
-            if (result == DialogResult.Yes)
+            DialogResult result = DialogResult.No;
+            if (dataGridView1.ColumnCount == 1)
             {
-                if (dataGridView1.ColumnCount > 1)
+                result = MessageBox.Show("Ви дійсно хочете видалити останню колонку?", "Видалити", MessageBoxButtons.YesNo);
+            }
+            if (dataGridView1.RowCount == 0 || dataGridView1.ColumnCount == 0)
+            {
+                MessageBox.Show("Таблиця порожня!", "Повідомлення", MessageBoxButtons.OK);
+            }
+            else if ((dataGridView1.ColumnCount > 1) || (dataGridView1.ColumnCount == 1 && result == DialogResult.Yes))
+            {
+                DataGridViewCell cell = dataGridView1.SelectedCells[0];////////////////
+                DialogResult res = DialogResult.No;
+                string deletedCells = "";
+                for (int i = 0; i < dataGridView1.RowCount; i++)
                 {
-                    DataGridViewCell cell = dataGridView1.SelectedCells[0];
-                    dataGridView1.Columns.RemoveAt(cell.ColumnIndex);
+                    string name = CellManager.Instance.CheckCellIsUsed(dataGridView1[cell.ColumnIndex,i]);
+                    if (name.Length > 0)
+                    {
+                        deletedCells += name + " ";
+                        CellManager.Instance.deletedCells.Add(name);
+                    }
                 }
-                UpdateDGV();
-                UpdateCellValues();
+                if (deletedCells.Length > 0)
+                {
+                    res = MessageBox.Show
+                       (
+                       "В обраній колонці є клітинки " + deletedCells + "на які посилаються інші клітинки таблиці.\n" +
+                       "Якщо ви видалите цю колонку, то значення цих клітинок буде прийняте за IntMax.\n" +
+                       "Ви дійсно хочете це зробити?", "Попередження", MessageBoxButtons.YesNo
+                       );
+                }
+                if (res == DialogResult.Yes)
+                {
+                    dataGridView1.Columns.RemoveAt(cell.ColumnIndex);
+                    UpdateDGV();
+                    UpdateCellValues();
+                }
+                CellManager.Instance.deletedCells.Clear();
             }
         }
-        private void UpdateDGV()
+        private void UpdateDGV()        
         {
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
@@ -259,10 +344,19 @@ namespace MyExcelLab
         }
         private void openMenuStrip(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            DialogResult result = MessageBox.Show("В поточному файлі можуть бути не збережені зміни.\nВи хочете їх зберегти?", "Зберегти файл", MessageBoxButtons.YesNo);
+            if (result == DialogResult.Yes)
             {
-                LoadDGV(openFileDialog1.FileName);
+                if (currPath != "")
+                {
+                    SaveDGV(currPath);
+                }
+                else
+                {
+                    saveFileDialog1.ShowDialog();
+                }
             }
+            openFileDialog1.ShowDialog();
         }
         private void saveMenuStrip(object sender, EventArgs e)
         {
@@ -272,15 +366,13 @@ namespace MyExcelLab
             }
             else
             {
-                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-                {
-                    SaveDGV(saveFileDialog1.FileName);
-                }
+                saveFileDialog1.ShowDialog();
             }
         }
         private void saveFileDialog1_FileOk(object sender, CancelEventArgs e)
         {
-            SaveDGV(currPath);
+            string path = saveFileDialog1.FileName;/////////////
+            SaveDGV(path);
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -296,6 +388,10 @@ namespace MyExcelLab
                 if (currPath != "")
                 {
                     SaveDGV(currPath);
+                }
+                else
+                {
+                    saveFileDialog1.ShowDialog();
                 }
             }
             if (result == DialogResult.Cancel)
@@ -318,11 +414,27 @@ namespace MyExcelLab
 
         private void helpClick(object sender, EventArgs e)
         {
-            MessageBox.Show("Опис программи:\n " +
+            MessageBox.Show
+                (
+                "Опис программи:\n " +
                 "Даний табличний процессор дає змогу обчислювати значення логічно-арифметичних виразів, які складаються з операцій:\n " +
-                "(), !, унарні + та -; %, /, |; or; =, >, <. Операціі вказані у порядку зменшення пріорітетності.\n " +
+                "(), !, унарні + та -; %, /, |; &; =, >, <. Операціі вказані у порядку зменшення пріорітетності.\n " +
                 "При застосуванні логічних операцій до цілих чисел, вони конвертуються в bool за принципом: >0 : true, інакше false.\n " +
-                "Також є можливість вказувати назви клітинок, як змінні у виразах інших клітинок.");
+                "Також є можливість вказувати назви клітинок, як змінні у виразах інших клітинок.\n\n " +
+                "Ви можете відкривати та зберігати таблиці у форматі xml, для цього натисніть на кнопку \"Файл\".\n" +
+                "Кнопки \"Додати рядок\\колонку\" додають іх у кінець таблиці.\n" +
+                "Кнопки \"Вставити рядок\\колонку\" вставляють іх на позицію перед виділеною клітинкою.\n" +
+                "Кнопки \"Видалити рядок\\колонку\" видаляють іх на позиції обраної клітинки.\n" +
+                "Кнопка \"Режим перегляду\" змінює числовий режим на формульний і навпаки.", "Довідка"
+                );
+        }
+
+        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+            string path = openFileDialog1.FileName;//////////////////
+            currPath = path;
+            LoadDGV(path);
+            UpdateDGV();
         }
     }
 }

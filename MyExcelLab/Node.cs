@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace MyExcelLab
 {
@@ -162,15 +163,22 @@ namespace MyExcelLab
 
             bool isCellExists = CellManager.Instance.DoesCellExist(_row, _column);
 
-            int value;
+            int value=0;
 
             if (isCellExists)
             {
+                CellManager.Instance.usedCells.Add(_name);
                 value = CellManager.Instance.GetCellValue(_row, _column);
             }
-            else
+            if (!isCellExists)
             {
-                value = 0;
+                CellManager.Instance.usedCells.Remove(_name);
+                //MessageBox.Show("Ви ссилаєтесь на неіснуючу комірку R"+(_row+1)+"C"+(_column+1)+"!\nЇї значенння будет замінене на IntMax!", "Увага!", MessageBoxButtons.OK);
+                value = int.MaxValue;
+            }
+            if (CellManager.Instance.deletedCells.Contains(_name))
+            {
+                value = int.MaxValue;
             }
 
             CellManager.Instance.DeleteVariable(_name);

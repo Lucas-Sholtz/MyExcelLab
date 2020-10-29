@@ -24,6 +24,8 @@ namespace MyExcelLab
         } // singleton cellmanager
 
         public List<string> varStack = new List<string>(); // list of cell names
+        public List<string> usedCells = new List<string>();
+        public List<string> deletedCells = new List<string>();
 
         private DataGridView _dgv; // datagrid
         public void SetDataGridView(DataGridView dgv) // sets datagrid
@@ -40,6 +42,16 @@ namespace MyExcelLab
         {
             MyCell cell = (MyCell)dgvCell.Tag;
             return cell;
+        }
+        public string CheckCellIsUsed(DataGridViewCell dgvCell)
+        {
+            string result = "";
+            string check = "R"+(dgvCell.RowIndex+1)+"C"+(dgvCell.ColumnIndex+1);
+            if (usedCells.Contains(check))
+            {
+                result = check;
+            }
+            return result;
         }
         public bool DoesCellExist(int row, int column)
         {
