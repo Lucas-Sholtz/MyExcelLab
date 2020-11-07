@@ -7,13 +7,13 @@ using System.Text.RegularExpressions;
 
 namespace MyExcelLab
 {
-    class TokenException : Exception { } // just a simple wrapper with apropriate name
+    class TokenException : Exception { } // обёртка для исключения с понятным названием
     public class Lexer
     { 
-        private string _text; // text which we write in cell
-        private int _pos; // symbol position
-        private char _currChar; // current char
-        const char NONE = '\0'; // empty symbol
+        private string _text; // текст, который записывается в ячейку
+        private int _pos; // позиция символа
+        private char _currChar; // текущий символ
+        private const char NONE = '\0'; // константа пустого символа
 
         public Lexer(string text)
         {
@@ -21,86 +21,89 @@ namespace MyExcelLab
             _pos = 0;
             _currChar = _text[0];
         }
-        public void ThrowTokenException() // throws an exception
+        public void ThrowTokenException() // бросает токен исключение
         {
             throw new TokenException();
         }
-        public void StepNextPos() // moving the current char one step forward
+        public void StepNextPos() // перемещает текущую позицию на один шаг вперёд
         {
-            // if end of line
-            if (++_pos > _text.Length - 1)
+            // проверяем конец строки
+            if (++_pos > _text.Length - 1) // инкремент позиции
             {
-                // no more symbols
+                // если символы закончились
                 _currChar = NONE;
             }
             else 
             {
+                // присваиваем текущий символ
                 _currChar = _text[_pos];
             }
         }
-        public void SkipWhitespace() //skips all whitespaces
+        public void SkipWhitespace() // пропускает пробелы
         {
+            // если не конец строки и текущий символ пробел
             while (_currChar != NONE && Char.IsWhiteSpace(_currChar))
             {
+                // шаг вперёд
                 StepNextPos();
             }
         }
-        public string GetCell() //if we meet the cell name in the line
+        public string GetCell() // возвращает имя ячейки
         {
             string result = "";
 
-            // only letters or digits could appear in cells name
+            // в имени ячейки могут быть только буквы и цифры
             while (_currChar != NONE && Char.IsLetterOrDigit(_currChar))
             {
+                // добавляем символ в строку результата
                 result += _currChar;
                 StepNextPos();
             }
 
-            // regular an expression that shows how the cell names should look
+            // таким образом выглядит регулярное выражение, которым можно описать название ячейки
             var regex = new Regex(@"^R(?<row>\d+)C(?<col>\d+)$");
-
-            var matches = regex.Matches(result);
-
+            // проверяем является ли данная комбинация цифр и букв названием ячейки
+            var matches = regex.Matches(result); 
+            // если совпадение не одно, то данная строка не является названием ячейки
             if (matches.Count != 1)
             {
-                // if cell has invalid name format
+                // ошибка
                 ThrowTokenException();
             }
-            // first and the only one name needed
-            string name = matches[0].Groups[0].Value;
-
-            return name;
+            // возвращаем имя
+            return result;
         }
-        public string GetInteger() //int value processing
+        public string GetInteger() // обработка интового значения
         {
             string result = "";
 
-            // only digits
+            // содержит только цифры
             while (_currChar != NONE && Char.IsDigit(_currChar))
             {
+                // записываем цифру в строку результат
                 result += _currChar;
                 StepNextPos();
             }
 
-            //throw an exception if char
+            // если в числе встречается буква, то это ошибка
             if (Char.IsLetter(_currChar))
             {
                 ThrowTokenException();
             }
-
+            // возвращаем результат
             return result;
         }
-        public Token GetNextToken() //reads next lexeme
+        public Token GetNextToken() // распознает следующий токен
         {
             while (_currChar != NONE)
             {
-                //skips all whitespaces
+                // пропускаем пробелы
                 if (Char.IsWhiteSpace(_currChar))
                 {
                     SkipWhitespace();
                     continue;
                 }
-
+                // по типу токена возвращаем соответствующий токен
                 switch (GetTokenType(_currChar))
                 {
                     case TokenType.ID:
@@ -171,14 +174,16 @@ namespace MyExcelLab
                         }
                     default:
                         {
+                            // если токен не распознан, то это ошибка
                             ThrowTokenException();
                             return new Token(TokenType.INVALID, "INVALID");
                         }
                 }
             }
+            // если текущий символ NONE то возвратим токен конца строки
             return new Token(TokenType.END, "END");
         }
-        public static TokenType GetTokenType(char symbol)
+        public static TokenType GetTokenType(char symbol) // определяет тип токена символа
         {
             if (Char.IsLetter(symbol))
             {
@@ -238,6 +243,7 @@ namespace MyExcelLab
             }
             else
             {
+                // если не распознан
                 return TokenType.INVALID;
             }
         } 

@@ -9,17 +9,18 @@ namespace MyExcelLab
 {
     class MyCell
     {
-        public DataGridViewCell Parent { get; set; } // dgv parent of myCell
-        public int Value { get; set; } // its value
-        public string Expression { get; set; } // string expression
+        public DataGridViewCell Parent { get; set; } // ячейка датагрида, к которой прикреплена MyCell
+        public int Value { get; set; } // значение ячейки
+        public string Expression { get; set; } // её выражение
         public MyCell(DataGridViewCell parent, string expression)
         {
             this.Parent = parent;
             Value = 0;
             this.Expression = expression;
         }
-        public int EvaluateCell() // returns cell value
+        public int EvaluateCell() // вычисляет значение ячейки
         {
+            // если не пустое, то интерпретируем выражение
             if (Expression != "")
             {
                 Value = Interpreter.DoInterpretation(Expression);

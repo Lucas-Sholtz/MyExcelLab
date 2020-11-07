@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace MyExcelLab
 {
-    public enum TokenType
+    public enum TokenType // енум типов токенов
     {
-        INTEGER,
+        INTEGER, // число
         ID, //RXCY
         MOD, // %
         DIV, // /
-        UPLUS, //unar plus
-        UMINUS, //unar minus
+        UPLUS, // унарный плюс
+        UMINUS, // унарный минус
         EQUAL, // =
         GREATER, // >
         LESS, // >
@@ -22,19 +22,20 @@ namespace MyExcelLab
         AND, // &
         LPAREN, // (
         RPAREN, // )
-        END,
-        INVALID 
+        END, // конец строки
+        INVALID // нераспознанный токен
     }
     public class Token
     {
-        private TokenType _type; //type of lexem
-        private string _value; //expression in the cell
+        private TokenType _type; // тип лексемы
+        private string _value; // символы в токене
 
         public Token(TokenType type, string value)
         {
             this._type = type;
             this._value = value;
         }
+        // геттеры и сеттеры
         public TokenType Type
         {
             get

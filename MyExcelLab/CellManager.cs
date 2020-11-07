@@ -7,10 +7,10 @@ using System.Windows.Forms;
 
 namespace MyExcelLab
 {
-    class RecursionException : Exception { } // just another wrapper for exception
+    class RecursionException : Exception { } // обёртка для исключения
     class CellManager
     {
-        private static CellManager _instance;
+        private static CellManager _instance; // инстанс
         public static CellManager Instance
         {
             get
@@ -21,43 +21,44 @@ namespace MyExcelLab
                 }
                 return _instance;
             }
-        } // singleton cellmanager
+        } // конструктор инстанса
 
-        public List<string> varStack = new List<string>(); // list of cell names
-        public List<string> usedCells = new List<string>();
-        public List<string> deletedCells = new List<string>();
+        public List<string> varCells = new List<string>(); // список используемых переменных
+        public List<string> usedCells = new List<string>(); // список ячеек, на которые ссылаются
+        public List<string> deletedCells = new List<string>(); //список ячеек, которые удаляют при прошлом вызове команд DeleteRow или DeleteColumn
 
         private DataGridView _dgv; // datagrid
-        public void SetDataGridView(DataGridView dgv) // sets datagrid
+        public void SetDataGridView(DataGridView dgv) // устанавливает датагрид
         {
             _dgv = dgv;
         }
-        public MyCell GetCell(int row, int column) // returns MyCell by its row and column indexes
+        public MyCell GetCell(int row, int column) // возвращает MyCell по её индексу
         {
-            MyCell cell = (MyCell)_dgv[column, row].Tag;
-
+            MyCell cell = GetCell(_dgv[column, row]);
             return cell;
         }
-        public MyCell GetCell(DataGridViewCell dgvCell) // returns MyCell сorresponding to the cell in data grid
+        public MyCell GetCell(DataGridViewCell dgvCell) // возвращает MyCell по соответствующей клетке в датагриде
         {
             MyCell cell = (MyCell)dgvCell.Tag;
             return cell;
         }
-        public string CheckCellIsUsed(DataGridViewCell dgvCell)
+        public string CheckCellIsUsed(DataGridViewCell dgvCell) // проверяет использование данной клетки
         {
             string result = "";
-            string check = "R"+(dgvCell.RowIndex+1)+"C"+(dgvCell.ColumnIndex+1);
+            string check = "R"+(dgvCell.RowIndex+1)+"C"+(dgvCell.ColumnIndex+1); // преобразуем имя в нужный формат
+            // если она используется
             if (usedCells.Contains(check))
             {
                 result = check;
             }
+            //тогда возвращаем её имя, иначе возвращаем пустую строку
             return result;
         }
-        public bool DoesCellExist(int row, int column)
+        public bool DoesCellExist(int row, int column) // проверяет существование клетки
         {
             try
             {
-                // if cell exist then we could get it
+                // если клетка существует, то мы можем получить её значение
                 GetCell(row, column);
                 return true;
             }
@@ -66,11 +67,11 @@ namespace MyExcelLab
                 return false;
             }
         }
-        public int GetCellValue(int row, int column) // returns cell value by its indexes
+        public int GetCellValue(int row, int column) // возвращает значение клетки по индексам
         {
             MyCell cell = GetCell(row, column);
 
-            // if its empty then we dont need to calculate it
+            // если клетка пустая, то нам не нужно вычислять её значение
             if (cell.Expression != "") 
             {
                 return cell.EvaluateCell();
@@ -80,25 +81,25 @@ namespace MyExcelLab
                 return cell.Value;
             }
         }
-        public void RecursionCheck(string name) // checks for recursion
+        public void RecursionCheck(string name) // проверяет переменную на рекурсию
         {
-            //if we already have such variable
-            if (varStack.Contains(name))
+            // если в списке переменных уже есть такая переменная
+            if (varCells.Contains(name))
             {
-                // recursion happened, clear all variables
+                // попали в рекурсию, нужнео очистить все переменные
                 ClearVariables();
                 throw new RecursionException();
             }
-            // if all ok
-            varStack.Add(name);
+            // иначе всё хорошо
+            varCells.Add(name);
         }
-        public void DeleteVariable(string name) // removes variable from var stack
+        public void DeleteVariable(string name) // удаляет конкретную переменную из листа переменных
         {
-            varStack.Remove(name);
+            varCells.Remove(name);
         }
-        public void ClearVariables() // clears var stack
+        public void ClearVariables() // очищает лист переменных
         {
-            varStack.Clear();
+            varCells.Clear();
         }
     }
 }

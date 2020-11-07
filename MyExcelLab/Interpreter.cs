@@ -8,23 +8,24 @@ namespace MyExcelLab
 {
     public static class Interpreter
     {
-        public static Node BuildTree(string text) // builds tree from expression string
+        public static Node BuildTree(string text) // строит дерево по строке выражения
         {
+            // значение пустого выражения равно 0
             if (text == "")
             {
                 text = "0";
             }
-            Lexer lexer = new Lexer(text);
-            Parser parser = new Parser(lexer);
-            return parser.PrioritySix();
+            Lexer lexer = new Lexer(text); // передаём текст в лексер
+            Parser parser = new Parser(lexer); // и также в парсер
+            return parser.PrioritySix(); //погружаемся на низший уровень приоритетности операций
         }
-        public static int DoInterpretation(string text) // interprets expression
+        public static int DoInterpretation(string text) // интерпретирует выражение по строке
         {
             return DoInterpretation(BuildTree(text));
         }
-        public static int DoInterpretation(Node tree) // calculates whole expre
+        public static int DoInterpretation(Node root) // вычисляет выражение по корню дерева
         {
-            return tree.Evaluate();
+            return root.Evaluate();
         }
     }
 }

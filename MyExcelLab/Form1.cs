@@ -12,55 +12,62 @@ namespace MyExcelLab
 {
     public partial class Form1 : Form
     {
-        bool formulaView;
-        string currPath = "";
+        bool formulaView; // текущий режим просмотра
+        string currPath = ""; // текущий путь к фалу
         public Form1()
         {
             InitializeComponent();
-            CellManager.Instance.SetDataGridView(dataGridView1);
-            SetupDataGridView(10, 10);
-            formulaView = false;
+            CellManager.Instance.SetDataGridView(dataGridView1); // устанавливаем датагрид
+            SetupDataGridView(10, 10); // размером 10 на 10
+            formulaView = false; // режим просмотра : числа
         }
-        private void SetupDataGridView(int rows, int columns)
+        private void SetupDataGridView(int rows, int columns) // конфигурирует датагрид
         {
             typeof(DataGridView).InvokeMember("DoubleBuffered", System.Reflection.BindingFlags.NonPublic
                                                 | System.Reflection.BindingFlags.Instance
                                                 | System.Reflection.BindingFlags.SetProperty,
-                                                null, dataGridView1, new object[] { true });
-            dataGridView1.AllowUserToAddRows = false;
-            dataGridView1.ColumnCount = columns;
-            dataGridView1.RowCount = rows;
-            UpdateDGV();
+                                                null, dataGridView1, new object[] { true }); // это я подсмотрел в интернете
+            dataGridView1.AllowUserToAddRows = false; // юзер не может добавлять ряды иным способом кроме кнопки AddRow
+            dataGridView1.ColumnCount = columns; // устанавливаем колонку
+            dataGridView1.RowCount = rows;  // и ряды
+            UpdateDGV(); // обновляем таблицу
         }
-        private void AddRow()
+        private void AddRow() // добавляет ряд
         {
             dataGridView1.RowCount++;
+            // обновляем таблицу
             UpdateDGV();
         }
-        private void AddColumn()
+        private void AddColumn() // добавляет колонку
         {
             dataGridView1.ColumnCount++;
+            // обновляем таблицу
             UpdateDGV();
         }
-        private void InsertRow()
+        private void InsertRow() // вставляет строку в выделенное место
         {
             DataGridViewCell cell = null;
             try
             {
+                // пробуем взять выделенную клетку
                 cell = dataGridView1.SelectedCells[0];
             }
             catch (Exception) { }
+            // если не пустая
             if (cell != null)
             {
+                // то вставим строку
                 dataGridView1.Rows.Insert(cell.ColumnIndex, new DataGridViewRow());
+                // и обновим таблицу
                 UpdateDGV();
             }
             else
             {
+                // если ни одной ячейки не выделено то таблица пустая (старый функционал, таблица не может быть пустой)
                 MessageBox.Show("Ви не можете вставити рядок у пусту таблицю, бо у ній неможливо вказати місце вставки.\nСпробуйте додати.", "Повідомлення", MessageBoxButtons.OK);
             }
         }
-        private void InsertColumn()
+        private void InsertColumn() // вставляет колонку в выбранное место
         {
             DataGridViewCell cell = null;
             try
@@ -70,43 +77,44 @@ namespace MyExcelLab
             catch (Exception) { }
             if (cell != null)
             {
+                // таким образом вставляется колонка
                 DataGridViewColumn column = new DataGridViewColumn();
                 column.CellTemplate = new DataGridViewTextBoxCell();
                 dataGridView1.Columns.Insert(cell.ColumnIndex, column);
+                // обновим таблицу
                 UpdateDGV();
             }
             else
             {
+                // если ни одной ячейки не выделено то таблица пустая (старый функционал, таблица не может быть пустой)
                 MessageBox.Show("Ви не можете вставити колонку у пусту таблицю, бо у ній неможливо вказати місце вставки.\nСпробуйте додати.", "Повідомлення", MessageBoxButtons.OK);
             }
         }
-        private void DeleteRow()
+        private void DeleteRow() // удадяет выбранную строку
         {
-            DialogResult result = DialogResult.No;
-            if (dataGridView1.RowCount == 1)
+            if (dataGridView1.RowCount == 1) // последний ряд нельзя удалить
             {
-                result = MessageBox.Show("Ви дійсно хочете видалити останній рядок?", "Видалити", MessageBoxButtons.YesNo);
+                MessageBox.Show("Не можна видалити останній рядок.", "Попередження", MessageBoxButtons.OK);
             }
-            if (dataGridView1.RowCount == 0||dataGridView1.ColumnCount==0)
+            else if (dataGridView1.RowCount > 1) 
             {
-                MessageBox.Show("Таблиця порожня!","Повідомлення", MessageBoxButtons.OK);
-            }
-            else if ((dataGridView1.RowCount > 1) || (dataGridView1.RowCount == 1 && result == DialogResult.Yes))
-            {
-                DataGridViewCell cell = dataGridView1.SelectedCells[0];////////////////
+                DialogResult res = DialogResult.No; // результат диалога, в котором пользователя предупреждают об удалении ячеек на которые что то ссылается
+                DataGridViewCell cell = dataGridView1.SelectedCells[0];
                 DataGridViewRow row = dataGridView1.Rows[cell.RowIndex];
-                DialogResult res=DialogResult.No;
-                string deletedCells = "";
-                for(int i=0;i<row.Cells.Count;i++)
+                string deletedCells = ""; // список удаляемых ячеек
+                for(int i=0;i<row.Cells.Count;i++) // итерируемся по ряду
                 {
+                    // и проверяем ссылается ли на ячейку что-то
                     string name = CellManager.Instance.CheckCellIsUsed(row.Cells[i]);
-                    if (name.Length > 0)
+                    if (name.Length > 0) // если ссылается то имя будет не пустое
                     {
+                        // добавляем имя в список ячеек
                         deletedCells += name + " ";
+                        // и в лист удалённых ячеек
                         CellManager.Instance.deletedCells.Add(name);
                     }
                 }
-                if (deletedCells.Length > 0)
+                if (deletedCells.Length > 0) // если хоть одна ячейка на которую что то ссылается будет удалена то нужно предупредить пользователя
                 {
                      res = MessageBox.Show
                         (
@@ -115,29 +123,26 @@ namespace MyExcelLab
                         "Ви дійсно хочете це зробити?", "Попередження", MessageBoxButtons.YesNo
                         );
                 }
-                if (res == DialogResult.Yes)
+                if (res == DialogResult.Yes||deletedCells.Length==0)
                 {
+                    // удаляем ряд, обновляем таблицу и значения ячеек
                     dataGridView1.Rows.RemoveAt(cell.RowIndex);
                     UpdateDGV();
                     UpdateCellValues();
                 }
+                // чистим список удалённых ячеек
                 CellManager.Instance.deletedCells.Clear();
             }
         }
-        private void DeleteColumn()
+        private void DeleteColumn() // удаляет выделенную колонку, работает аналогично предыдущему методу
         {
-            DialogResult result = DialogResult.No;
             if (dataGridView1.ColumnCount == 1)
             {
-                result = MessageBox.Show("Ви дійсно хочете видалити останню колонку?", "Видалити", MessageBoxButtons.YesNo);
+                MessageBox.Show("Не можна видалити останню колонку!", "Попередження", MessageBoxButtons.OK);
             }
-            if (dataGridView1.RowCount == 0 || dataGridView1.ColumnCount == 0)
+            else if (dataGridView1.ColumnCount > 1)
             {
-                MessageBox.Show("Таблиця порожня!", "Повідомлення", MessageBoxButtons.OK);
-            }
-            else if ((dataGridView1.ColumnCount > 1) || (dataGridView1.ColumnCount == 1 && result == DialogResult.Yes))
-            {
-                DataGridViewCell cell = dataGridView1.SelectedCells[0];////////////////
+                DataGridViewCell cell = dataGridView1.SelectedCells[0];
                 DialogResult res = DialogResult.No;
                 string deletedCells = "";
                 for (int i = 0; i < dataGridView1.RowCount; i++)
@@ -158,7 +163,7 @@ namespace MyExcelLab
                        "Ви дійсно хочете це зробити?", "Попередження", MessageBoxButtons.YesNo
                        );
                 }
-                if (res == DialogResult.Yes)
+                if (res == DialogResult.Yes||deletedCells.Length==0)
                 {
                     dataGridView1.Columns.RemoveAt(cell.ColumnIndex);
                     UpdateDGV();
@@ -167,16 +172,18 @@ namespace MyExcelLab
                 CellManager.Instance.deletedCells.Clear();
             }
         }
-        private void UpdateDGV()        
+        private void UpdateDGV() // обновляет таблицу  
         {
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
+                // обновляем исена колонок и их ширину
                 column.HeaderText = "C" + (column.Index + 1).ToString();
                 column.MinimumWidth = 100;
                 column.SortMode = DataGridViewColumnSortMode.NotSortable;
             }
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
+                // обновляем имена строк
                 row.HeaderCell.Value = "R" + (row.Index + 1).ToString();
             }
             foreach (DataGridViewRow row in dataGridView1.Rows)
@@ -185,18 +192,20 @@ namespace MyExcelLab
                 {
                     if (cell.Tag == null)
                     {
+                        // обновляем теги у пустых ячеек
                         cell.Tag = new MyCell(cell, "");
                     }
                 }
             }
         }
-        public void UpdateCellValues()
+        public void UpdateCellValues() // пересчитывает значения ячеек
         {
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
                 foreach (DataGridViewCell cell in row.Cells)
                 {
                     MyCell myCell = (MyCell)cell.Tag;
+                    // считаем значение
                     myCell.EvaluateCell();
                     if (!formulaView)
                     {
@@ -212,51 +221,61 @@ namespace MyExcelLab
                 }
             }
         }
-        private void SaveDGV(string path)
+        private void SaveDGV(string path) // сохраняет таблицу
         {
             currPath = path;
             dataGridView1.EndEdit();
-            DataTable table = new DataTable("data");
+            DataTable table = new DataTable("data"); // таблица, которую мы потом запишем в ХМЛ
             foreach (DataGridViewColumn column in dataGridView1.Columns)
             {
+                // добавляем колонки
                 table.Columns.Add(column.Index.ToString());
             }
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
+                // создаём в таблице колонки
                 DataRow newRow = table.NewRow();
                 foreach (DataColumn column in table.Columns)
                 {
-                    newRow[column.ColumnName] = CellManager.Instance.GetCell(row.Cells[int.Parse(column.ColumnName)]).Expression;//////
+                    // и всписываем в них значения выражений в ячейке
+                    newRow[column.ColumnName] = CellManager.Instance.GetCell(row.Cells[int.Parse(column.ColumnName)]).Expression;
                 }
                 table.Rows.Add(newRow);
             }
+            // записываем ХМЛ файл
             table.WriteXml(path);
         }
-        private void LoadDGV(string path)
+        private void LoadDGV(string path) // запгружает таблицу из ХМЛ файла
         {
             currPath = path;
-            DataSet dataSet = new DataSet();
+            DataSet dataSet = new DataSet(); 
+            // читаем ХМЛ файл
             dataSet.ReadXml(path);
+            // формируем таблицу
             DataTable table = dataSet.Tables[0];
+            // устанавливаем её размеры
             dataGridView1.ColumnCount = table.Columns.Count;
             dataGridView1.RowCount = table.Rows.Count;
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
                 foreach (DataGridViewCell cell in row.Cells)
                 {
+                    // записываем значения
                     cell.Tag = new MyCell(cell, table.Rows[cell.RowIndex][cell.ColumnIndex].ToString());
                 }
+                // обновляем таблицу и значения ячеек
                 UpdateDGV();
                 UpdateCellValues();
             }
         }
-        private void ChangeView()
+        private void ChangeView() // меняет режим просмотра
         {
             foreach (DataGridViewRow row in dataGridView1.Rows)
             {
                 foreach (DataGridViewCell cell in row.Cells)
                 {
-                    MyCell myCell = CellManager.Instance.GetCell(cell);////
+                    // в каждой ячейке меняем значение
+                    MyCell myCell = CellManager.Instance.GetCell(cell);
                     if (!formulaView)
                     {
                         cell.Value = myCell.Expression;
@@ -274,9 +293,10 @@ namespace MyExcelLab
                     }
                 }
             }
+            // переключаем буль
             formulaView = !formulaView;
         }
-        private void CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        private void CellEndEdit(object sender, DataGridViewCellEventArgs e) // обновляем значение в ячейке после редактирования
         {
             if (e.RowIndex == -1 || e.ColumnIndex == -1)
             {
@@ -290,13 +310,16 @@ namespace MyExcelLab
                 myCell.Expression = cell.Value.ToString();
                 try
                 {
+                    // пробуем обновить значение
                     UpdateCellValues();
                 }
-                catch (Exception ex)
+                catch (Exception ex) // если ошибка
                 {
                     MessageBox.Show(ex.Message);
                     CellManager.Instance.ClearVariables();
+                    // делаем откат до предыдущего выражения
                     myCell.Expression = prevExpr;
+                    // обновляем значения
                     UpdateCellValues();
                 }
             }
@@ -371,7 +394,7 @@ namespace MyExcelLab
         }
         private void saveFileDialog1_FileOk(object sender, CancelEventArgs e)
         {
-            string path = saveFileDialog1.FileName;/////////////
+            string path = saveFileDialog1.FileName;
             SaveDGV(path);
         }
 
@@ -400,9 +423,11 @@ namespace MyExcelLab
             }
         }
 
-        private void CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        private void CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e) // в начале редактирования ячейки
         {
+            // связываем её с MyCell
             MyCell myCell = CellManager.Instance.GetCell(e.RowIndex, e.ColumnIndex);
+            // присваеваем как родителя
             DataGridViewCell cell = myCell.Parent;
             cell.Value = myCell.Expression;
         }
@@ -412,7 +437,7 @@ namespace MyExcelLab
             dataGridView1.BeginEdit(true);
         }
 
-        private void helpClick(object sender, EventArgs e)
+        private void helpClick(object sender, EventArgs e) // вызов справки
         {
             MessageBox.Show
                 (
@@ -431,7 +456,7 @@ namespace MyExcelLab
 
         private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
         {
-            string path = openFileDialog1.FileName;//////////////////
+            string path = openFileDialog1.FileName;
             currPath = path;
             LoadDGV(path);
             UpdateDGV();
